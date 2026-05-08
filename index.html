@@ -3,48 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bruno 8-Bit Dino Style</title>
+    <title>Bruno Dino-Style & Lullaby</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
         :root { --gb-screen: #8b956d; --gb-dark: #1f1f21; --gb-body: #9ca0a8; }
         body { background: #1a1a1a; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; font-family: 'Press Start 2P', cursive; image-rendering: pixelated; }
-        
-        #gameboy { width: 340px; background: var(--gb-body); padding: 25px; border-radius: 10px 10px 50px 10px; border: 4px solid #777; box-shadow: 10px 10px 0 #000; }
+        #gameboy { width: 340px; background: var(--gb-body); padding: 25px; border-radius: 10px 10px 50px 10px; border: 4px solid #777; box-shadow: 10px 10px 0 #000; position: relative;}
         #screen-border { background: #333; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
         #screen { background: var(--gb-screen); height: 160px; border: 3px solid #555; position: relative; overflow: hidden; }
-
-        /* แถบพลังจิ๋ว */
+        
         .hud { display: flex; gap: 8px; padding: 8px; font-size: 6px; color: var(--gb-dark); }
         .bar-bg { background: rgba(0,0,0,0.1); height: 4px; width: 35px; border: 1px solid var(--gb-dark); }
         .fill { background: var(--gb-dark); height: 100%; transition: 0.3s; }
 
-        /* แมว Dino Style สีน้ำตาล */
+        /* แมว Dino Style ขาวดำ */
         #cat { 
             font-size: 45px; position: absolute; bottom: 10px; left: 110px; 
-            filter: sepia(1) saturate(5) hue-rotate(350deg); /* ปรับให้เป็นสีน้ำตาล */
+            filter: grayscale(100%) contrast(200%);
             animation: walk 0.2s steps(2) infinite;
         }
-        @keyframes walk { from { transform: scaleY(1); } to { transform: scaleY(0.98) translateY(1px); } }
-        .beg { animation: beg-anim 0.5s infinite !important; }
-        @keyframes beg-anim { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(-20deg) scale(1.1); } }
-
-        #target { position: absolute; font-size: 25px; display: none; bottom: 10px; }
+        @keyframes walk { from { transform: scaleY(1); } to { transform: scaleY(0.95) translateY(2px); } }
+        
+        #target { position: absolute; font-size: 25px; display: none; bottom: 10px; cursor: pointer; }
         #poop { position: absolute; font-size: 30px; bottom: 5px; left: 50%; display: none; }
 
-        /* ปุ่มคอนโซล */
         .controls { display: flex; justify-content: space-between; align-items: center; margin-top: 15px; }
         .d-pad { display: grid; grid-template-columns: 35px 35px 35px; grid-template-rows: 35px 35px 35px; }
         .d-btn { background: #333; border: none; cursor: pointer; color: #777; font-size: 12px; }
         .d-btn:active { background: #000; color: #fff; }
 
         .action-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .a-btn { 
-            width: 50px; height: 50px; border-radius: 50%; background: #bdc3c7; 
-            border: 3px solid #333; box-shadow: 3px 3px 0 #000;
-            color: #333; font-size: 6px; font-weight: bold; cursor: pointer;
-        }
-        .a-btn:active { transform: translate(2px, 2px); box-shadow: 0 0; }
-
+        .a-btn { width: 50px; height: 50px; border-radius: 50%; background: #333; border: 3px solid #000; box-shadow: 3px 3px 0 #111; color: #777; font-size: 6px; font-weight: bold; cursor: pointer; }
+        .a-btn:active { transform: translate(2px, 2px); box-shadow: 0 0; background: #000; }
+        
         #msg { font-size: 7px; color: var(--gb-dark); position: absolute; bottom: 8px; width: 100%; text-align: center; }
     </style>
 </head>
@@ -54,24 +45,22 @@
     <div id="screen-border">
         <div id="screen">
             <div class="hud">
-                <div>H<div class="bar-bg"><div id="h-f" class="fill" style="width:100%"></div></div></div>
-                <div>E<div class="bar-bg"><div id="e-f" class="fill" style="width:100%"></div></div></div>
-                <div>P<div class="bar-bg"><div id="p-f" class="fill" style="width:0%"></div></div></div>
+                <div>H<div class="bar-bg"><div id="h-f" class="fill"></div></div></div>
+                <div>E<div class="bar-bg"><div id="e-f" class="fill"></div></div></div>
+                <div>W<div class="bar-bg"><div id="w-f" class="fill" style="width:0%"></div></div></div>
             </div>
             <div id="poop">💩</div>
-            <div id="target">🐀</div>
+            <div id="target" onclick="clickPrey()">🐀</div>
             <div id="cat">🐈</div>
             <div id="msg">READY_</div>
         </div>
     </div>
-
     <div class="controls">
         <div class="d-pad">
             <div></div><button class="d-btn" onclick="jump()">▲</button><div></div>
             <button class="d-btn" onclick="move(-40)">◀</button><div style="background:#333"></div><button class="d-btn" onclick="move(40)">▶</button>
             <div></div><button class="d-btn" onclick="checkCombo()">▼</button><div></div>
         </div>
-
         <div class="action-btns">
             <button class="a-btn" onclick="act('hunt')">HUNT</button>
             <button class="a-btn" onclick="act('feed')">FEED</button>
@@ -82,79 +71,86 @@
 </div>
 
 <script>
-    let h=100, e=100, p=0, x=110, hunting=false, lastDown=0;
-    const preyList = ['🐀', '🐦', '🐛', '🪲'];
+    let h=100, e=100, p=0, winCount=0, x=110, lastDown=0, hunting=false, snakeTimer=null;
+    const preyList = ['🐀', '🐦', '🐛', '🪲', '🐍'];
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
     function beep(f, t, d) {
-        const o = audioCtx.createOscillator();
-        const g = audioCtx.createGain();
-        o.type = t; o.frequency.value = f;
-        g.gain.setValueAtTime(0.1, audioCtx.currentTime);
-        o.connect(g); g.connect(audioCtx.destination);
-        o.start(); o.stop(audioCtx.currentTime + d);
+        const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
+        o.type = t; o.frequency.value = f; g.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        o.connect(g); g.connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime + d);
+    }
+
+    function playLullaby() {
+        const notes = [261, 329, 392, 523, 392, 329];
+        notes.forEach((f, i) => setTimeout(() => beep(f, 'sine', 0.4), i * 500));
+    }
+
+    function playBaeW() {
+        const notes = [400, 300, 200, 100];
+        notes.forEach((f, i) => setTimeout(() => beep(f, 'square', 0.1), i * 100));
     }
 
     function update(txt) {
+        if(winCount >= 5) { txt = "YOU WIN!"; document.getElementById('cat').innerText="🏆"; }
         if(p >= 100) { p=100; document.getElementById('poop').style.display="block"; txt="DIRTY! DOWN x2"; }
         else { document.getElementById('poop').style.display="none"; }
         
         document.getElementById('h-f').style.width = h+'%';
         document.getElementById('e-f').style.width = e+'%';
-        document.getElementById('p-f').style.width = p+'%';
+        document.getElementById('w-f').style.width = (winCount*20)+'%';
         document.getElementById('msg').innerText = txt.toUpperCase();
     }
 
-    function move(d) {
-        beep(150, 'square', 0.05);
-        x = Math.max(0, Math.min(240, x+d));
-        document.getElementById('cat').style.left = x+'px';
-        checkHit();
-    }
+    function move(d) { beep(150, 'square', 0.05); x = Math.max(0, Math.min(240, x+d)); document.getElementById('cat').style.left = x+'px'; checkHit(); }
+    
+    function jump() { beep(400, 'square', 0.1); const c = document.getElementById('cat'); c.style.bottom = "80px"; setTimeout(() => { c.style.bottom="10px"; checkHit(); }, 300); }
 
-    function jump() {
-        beep(400, 'square', 0.1);
-        const c = document.getElementById('cat');
-        c.style.bottom = "80px";
-        setTimeout(() => { c.style.bottom="10px"; checkHit(); }, 300);
-    }
-
-    function checkCombo() {
-        beep(100, 'square', 0.05);
-        let now = Date.now();
-        if(now - lastDown < 500) { // กดลง 2 ครั้งใน 0.5 วินาที
-            p = 0; beep(600, 'sine', 0.2); update("CLEANED!");
-        }
-        lastDown = now;
-    }
+    function checkCombo() { beep(100, 'square', 0.05); let now = Date.now(); if(now - lastDown < 500) { p = 0; beep(600, 'sine', 0.2); update("CLEANED!"); } lastDown = now; }
 
     function act(type) {
+        if(winCount >= 5) return;
         beep(500, 'sine', 0.1);
-        const cat = document.getElementById('cat');
         if(type==='feed') { h=Math.min(100,h+20); p+=10; update("yummy!"); }
-        if(type==='sleep') { e=Math.min(100,e+50); h-=5; update("zzz..."); }
+        if(type==='sleep') { e=Math.min(100,e+50); h-=5; playLullaby(); update("LULLABY..."); }
         if(type==='hunt') { e-=15; spawn(); update("CATCH IT!"); }
-        if(type==='beg') { 
-            h+=10; cat.classList.add('beg'); 
-            update("MEOW_");
-            setTimeout(() => cat.classList.remove('beg'), 1500);
-        }
+        if(type==='beg') { h+=10; update("MEOW_"); }
     }
 
     function spawn() {
+        if(hunting) return;
         hunting=true;
         const t = document.getElementById('target');
-        t.innerText = preyList[Math.floor(Math.random() * preyList.length)];
-        t.style.display="block"; t.style.left = Math.random()*220+"px";
-    }
+        const prey = preyList[Math.floor(Math.random() * preyList.length)];
+        t.innerText = prey; t.style.display="block"; t.style.left = Math.random()*220+"px";
 
-    function checkHit() {
-        const c=document.getElementById('cat'), t=document.getElementById('target');
-        if(hunting && Math.abs(c.offsetLeft - t.offsetLeft) < 35 && c.style.bottom === "10px") {
-            beep(800, 'square', 0.2);
-            hunting=false; t.style.display="none"; h=Math.min(100,h+30); p+=20; update("GOT "+t.innerText+"!");
+        if(prey === '🐍') {
+            snakeTimer = setTimeout(() => {
+                if(hunting) {
+                    playBaeW(); h = Math.max(0, h-40); hunting=false; t.style.display="none";
+                    update("SNAKE BITE!");
+                }
+            }, 500); // 0.5 วินาที
         }
     }
+
+    function clickPrey() { if(hunting) checkHit(true); }
+
+    function checkHit(isManual = false) {
+        const c=document.getElementById('cat'), t=document.getElementById('target');
+        const isSnake = t.innerText === '🐍';
+        const hit = Math.abs(c.offsetLeft - t.offsetLeft) < 40 && c.style.bottom === "10px";
+        
+        if(hunting && (hit || (isSnake && isManual))) {
+            clearTimeout(snakeTimer);
+            beep(800, 'square', 0.2);
+            hunting=false; t.style.display="none";
+            if(!isSnake) winCount++;
+            h=Math.min(100,h+20); p+=20;
+            update(isSnake ? "SAFE!" : "GOT IT!");
+        }
+    }
+    update("BRUNO V3");
 </script>
 </body>
 </html>
