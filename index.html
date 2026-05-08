@@ -3,37 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bruno GameBoy Brown</title>
+    <title>Bruno 8-Bit Dino Style</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
         :root { --gb-screen: #8b956d; --gb-dark: #1f1f21; --gb-body: #9ca0a8; }
         body { background: #1a1a1a; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; font-family: 'Press Start 2P', cursive; image-rendering: pixelated; }
-        #gameboy { width: 320px; background: var(--gb-body); padding: 25px; border-radius: 10px 10px 50px 10px; border: 4px solid #777; box-shadow: 10px 10px 0 #000; }
+        
+        #gameboy { width: 340px; background: var(--gb-body); padding: 25px; border-radius: 10px 10px 50px 10px; border: 4px solid #777; box-shadow: 10px 10px 0 #000; }
         #screen-border { background: #333; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
         #screen { background: var(--gb-screen); height: 160px; border: 3px solid #555; position: relative; overflow: hidden; }
-        .mini-hud { display: flex; gap: 8px; padding: 8px; font-size: 6px; color: var(--gb-dark); }
-        .bar-bg { background: rgba(0,0,0,0.1); height: 4px; width: 30px; border: 1px solid var(--gb-dark); }
+
+        /* แถบพลังจิ๋ว */
+        .hud { display: flex; gap: 8px; padding: 8px; font-size: 6px; color: var(--gb-dark); }
+        .bar-bg { background: rgba(0,0,0,0.1); height: 4px; width: 35px; border: 1px solid var(--gb-dark); }
         .fill { background: var(--gb-dark); height: 100%; transition: 0.3s; }
-        
-        /* แมว Pixel 8-bit สีน้ำตาล คุมโทน GameBoy */
-        #cat { font-size: 50px; position: absolute; bottom: 10px; left: 110px; animation: bounce 1s steps(2) infinite; filter: grayscale(100%) brightness(50%) contrast(150%); }
-        @keyframes bounce { from { transform: scaleY(1); } to { transform: scaleY(0.95); } }
-        
-        /* ท่าอ้อน (กลิ้งตัว) */
-        .begging { animation: roll 1s ease-in-out infinite !important; }
-        @keyframes roll { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(-180deg) translateY(-10px); } }
 
-        #target, #poop-area { position: absolute; font-size: 20px; display: none; }
-        #poop-area { font-size: 25px; bottom: 10px; }
+        /* แมว Dino Style สีน้ำตาล */
+        #cat { 
+            font-size: 45px; position: absolute; bottom: 10px; left: 110px; 
+            filter: sepia(1) saturate(5) hue-rotate(350deg); /* ปรับให้เป็นสีน้ำตาล */
+            animation: walk 0.2s steps(2) infinite;
+        }
+        @keyframes walk { from { transform: scaleY(1); } to { transform: scaleY(0.98) translateY(1px); } }
+        .beg { animation: beg-anim 0.5s infinite !important; }
+        @keyframes beg-anim { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(-20deg) scale(1.1); } }
 
-        .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+        #target { position: absolute; font-size: 25px; display: none; bottom: 10px; }
+        #poop { position: absolute; font-size: 30px; bottom: 5px; left: 50%; display: none; }
+
+        /* ปุ่มคอนโซล */
+        .controls { display: flex; justify-content: space-between; align-items: center; margin-top: 15px; }
         .d-pad { display: grid; grid-template-columns: 35px 35px 35px; grid-template-rows: 35px 35px 35px; }
-        .d-btn, .a-btn { background: var(--gb-dark); border: none; cursor: pointer; color: #555; font-family: 'Press Start 2P', cursive; transition: 0.1s; }
-        .a-btn { width: 45px; height: 45px; border-radius: 50%; color: var(--gb-dark); font-size: 6px; box-shadow: 3px 3px 0 #000; }
-        .d-btn:active, .a-btn:active { background: #000; box-shadow: 0 0 0; transform: translate(2px, 2px); }
-        
-        #clean-btn { grid-column: span 2; width: 100%; display: none; margin-top: 10px; font-size: 8px; }
-        #msg { font-size: 7px; color: var(--gb-dark); position: absolute; bottom: 10px; width: 100%; text-align: center; }
+        .d-btn { background: #333; border: none; cursor: pointer; color: #777; font-size: 12px; }
+        .d-btn:active { background: #000; color: #fff; }
+
+        .action-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .a-btn { 
+            width: 50px; height: 50px; border-radius: 50%; background: #bdc3c7; 
+            border: 3px solid #333; box-shadow: 3px 3px 0 #000;
+            color: #333; font-size: 6px; font-weight: bold; cursor: pointer;
+        }
+        .a-btn:active { transform: translate(2px, 2px); box-shadow: 0 0; }
+
+        #msg { font-size: 7px; color: var(--gb-dark); position: absolute; bottom: 8px; width: 100%; text-align: center; }
     </style>
 </head>
 <body>
@@ -41,74 +53,52 @@
 <div id="gameboy">
     <div id="screen-border">
         <div id="screen">
-            <div class="mini-hud">
-                <div>H<div class="bar-bg"><div id="h-f" class="fill"></div></div></div>
-                <div>E<div class="bar-bg"><div id="e-f" class="fill"></div></div></div>
+            <div class="hud">
+                <div>H<div class="bar-bg"><div id="h-f" class="fill" style="width:100%"></div></div></div>
+                <div>E<div class="bar-bg"><div id="e-f" class="fill" style="width:100%"></div></div></div>
                 <div>P<div class="bar-bg"><div id="p-f" class="fill" style="width:0%"></div></div></div>
             </div>
-            <div id="poop-area">💩💩</div>
+            <div id="poop">💩</div>
             <div id="target">🐀</div>
             <div id="cat">🐈</div>
-            <div id="msg">PRESS "LOVE" TO START</div>
+            <div id="msg">READY_</div>
         </div>
     </div>
+
     <div class="controls">
         <div class="d-pad">
             <div></div><button class="d-btn" onclick="jump()">▲</button><div></div>
-            <button class="d-btn" onclick="move(-30)">◀</button><div style="background:var(--gb-dark)"></div><button class="d-btn" onclick="move(30)">▶</button>
-            <div></div><button class="d-btn">▼</button><div></div>
+            <button class="d-btn" onclick="move(-40)">◀</button><div style="background:#333"></div><button class="d-btn" onclick="move(40)">▶</button>
+            <div></div><button class="d-btn" onclick="checkCombo()">▼</button><div></div>
         </div>
-        <div class="action-btns" style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+
+        <div class="action-btns">
             <button class="a-btn" onclick="act('hunt')">HUNT</button>
             <button class="a-btn" onclick="act('feed')">FEED</button>
             <button class="a-btn" onclick="act('sleep')">ZZZ</button>
-            <button id="love-btn" class="a-btn" onclick="act('beg')">LOVE</button>
+            <button class="a-btn" onclick="act('beg')">LOVE</button>
         </div>
     </div>
-    <button id="clean-btn" class="a-btn" onclick="act('clean')">🧹 CLEAN</button>
 </div>
 
 <script>
-    let h=100, e=100, p=0, x=110, hunting=false, canClean=false;
+    let h=100, e=100, p=0, x=110, hunting=false, lastDown=0;
+    const preyList = ['🐀', '🐦', '🐛', '🪲'];
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    let meowSound = null;
 
-    // โหลดไฟล์เสียงแมว เครดิต: Freesound.org
-    fetch('https://raw.githubusercontent.com/FreesoundKey/Freesound/main/Sounds/cat_meow_1.mp3')
-        .then(response => response.arrayBuffer())
-        .then(arrayBuffer => audioCtx.decodeAudioData(arrayBuffer))
-        .then(decodedAudio => meowSound = decodedAudio);
-
-    function playSound(freq, type, duration) {
-        if(audioCtx.state === 'suspended') audioCtx.resume();
-        const osc = audioCtx.createOscillator();
-        osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-        osc.connect(audioCtx.destination);
-        osc.start(); osc.stop(audioCtx.currentTime + duration);
-    }
-
-    function playMeow() {
-        if(!meowSound) return;
-        if(audioCtx.state === 'suspended') audioCtx.resume();
-        const source = audioCtx.createBufferSource();
-        source.buffer = meowSound;
-        source.connect(audioCtx.destination);
-        source.start(0);
+    function beep(f, t, d) {
+        const o = audioCtx.createOscillator();
+        const g = audioCtx.createGain();
+        o.type = t; o.frequency.value = f;
+        g.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        o.connect(g); g.connect(audioCtx.destination);
+        o.start(); o.stop(audioCtx.currentTime + d);
     }
 
     function update(txt) {
-        if(h<=0) { h=0; update("BRUNO LOST"); document.getElementById('cat').innerText="🪦"; }
-        if(p>=100) { 
-            canClean=true; p=100; 
-            document.getElementById('poop-area').style.display="block";
-            document.getElementById('clean-btn').style.display="block";
-            txt="DIRTY! CLEAN IT"; 
-        } else {
-            canClean=false;
-            document.getElementById('poop-area').style.display="none";
-            document.getElementById('clean-btn').style.display="none";
-        }
-
+        if(p >= 100) { p=100; document.getElementById('poop').style.display="block"; txt="DIRTY! DOWN x2"; }
+        else { document.getElementById('poop').style.display="none"; }
+        
         document.getElementById('h-f').style.width = h+'%';
         document.getElementById('e-f').style.width = e+'%';
         document.getElementById('p-f').style.width = p+'%';
@@ -116,44 +106,53 @@
     }
 
     function move(d) {
-        if(canClean || h<=0) return;
-        playSound(200, 'square', 0.05);
+        beep(150, 'square', 0.05);
         x = Math.max(0, Math.min(240, x+d));
         document.getElementById('cat').style.left = x+'px';
-        check();
+        checkHit();
     }
 
     function jump() {
-        if(canClean || h<=0) return;
-        playSound(400, 'square', 0.1);
+        beep(400, 'square', 0.1);
         const c = document.getElementById('cat');
         c.style.bottom = "80px";
-        setTimeout(() => { c.style.bottom="10px"; check(); }, 300);
+        setTimeout(() => { c.style.bottom="10px"; checkHit(); }, 300);
+    }
+
+    function checkCombo() {
+        beep(100, 'square', 0.05);
+        let now = Date.now();
+        if(now - lastDown < 500) { // กดลง 2 ครั้งใน 0.5 วินาที
+            p = 0; beep(600, 'sine', 0.2); update("CLEANED!");
+        }
+        lastDown = now;
     }
 
     function act(type) {
-        if(h<=0 && type !== 'clean') return;
+        beep(500, 'sine', 0.1);
         const cat = document.getElementById('cat');
-        
-        if(type==='feed') { playSound(600, 'sine', 0.1); h=Math.min(100,h+20); p+=15; update("yummy!"); }
-        if(type==='sleep') { playSound(300, 'sine', 0.5); e=Math.min(100,e+40); h-=5; update("zzz..."); }
-        if(type==='hunt') { e-=15; spawn(); update("catch rat!"); }
-        if(type==='clean') { playSound(100, 'square', 0.3); p=0; update("CLEANED!"); }
+        if(type==='feed') { h=Math.min(100,h+20); p+=10; update("yummy!"); }
+        if(type==='sleep') { e=Math.min(100,e+50); h-=5; update("zzz..."); }
+        if(type==='hunt') { e-=15; spawn(); update("CATCH IT!"); }
         if(type==='beg') { 
-            playMeow(); h+=10; p+=5; 
-            cat.classList.add('begging');
-            update("MEOW! 💖");
-            setTimeout(() => cat.classList.remove('begging'), 2000);
+            h+=10; cat.classList.add('beg'); 
+            update("MEOW_");
+            setTimeout(() => cat.classList.remove('beg'), 1500);
         }
     }
 
-    function spawn() { hunting=true; const t = document.getElementById('target'); t.style.display="block"; t.style.left = Math.random()*230+"px"; }
+    function spawn() {
+        hunting=true;
+        const t = document.getElementById('target');
+        t.innerText = preyList[Math.floor(Math.random() * preyList.length)];
+        t.style.display="block"; t.style.left = Math.random()*220+"px";
+    }
 
-    function check() {
+    function checkHit() {
         const c=document.getElementById('cat'), t=document.getElementById('target');
-        if(hunting && Math.abs(c.offsetLeft - t.offsetLeft) < 30 && c.style.bottom === "10px") {
-            playSound(900, 'square', 0.2);
-            hunting=false; t.style.display="none"; h=Math.min(100,h+35); p+=25; update("got rat!");
+        if(hunting && Math.abs(c.offsetLeft - t.offsetLeft) < 35 && c.style.bottom === "10px") {
+            beep(800, 'square', 0.2);
+            hunting=false; t.style.display="none"; h=Math.min(100,h+30); p+=20; update("GOT "+t.innerText+"!");
         }
     }
 </script>
