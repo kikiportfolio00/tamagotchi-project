@@ -129,4 +129,58 @@
         const cat = document.getElementById('cat-sprite');
         cat.className = ''; // ล้างคลาสเก่า
         void cat.offsetWidth; // trigger reflow
-        cat.
+        cat.classList.add(animClass);
+    }
+
+    function playAction(type) {
+        if (type === 'hunt') {
+            if (energy < 20) return updateUI("อ้ายเหนื่อยเกินไป...", "😿‍⬛");
+            setAnim('hunt-anim');
+            setTimeout(() => {
+                energy -= 20;
+                if (Math.random() > 0.5) {
+                    hunger = Math.min(100, hunger + 25);
+                    poopLevel += 30;
+                    updateUI("อ้ายตะปบหนูได้! 🐀 หวานเจี๊ยบ", "😼‍⬛");
+                } else {
+                    updateUI("พลาด! หนูมันวิ่งไว 🐀", "😿‍⬛");
+                }
+                setTimeout(() => setAnim('breathe'), 500);
+            }, 500);
+        } 
+        else if (type === 'sleep') {
+            setAnim('sleep-anim');
+            setTimeout(() => {
+                energy = Math.min(100, energy + 50);
+                hunger -= 10;
+                updateUI("อ้ายหลับเต็มอิ่ม พลังมาเต็ม!", "💤‍⬛");
+                setTimeout(() => setAnim('breathe'), 1000);
+            }, 2000);
+        }
+        else if (type === 'beg') {
+            setAnim('beg-anim');
+            setTimeout(() => {
+                hunger = Math.min(100, hunger + 15);
+                poopLevel += 10;
+                updateUI("อ้อนจนคนใจอ่อน ได้หนมเฉย! 💖", "😸‍⬛");
+                setTimeout(() => setAnim('breathe'), 500);
+            }, 500);
+        }
+        else if (type === 'clean') {
+            poopLevel = 0; isDirty = false;
+            updateUI("ล้างห้องน้ำให้อ้ายแล้ว สะอาดกริ๊บ!", "😸‍⬛");
+            setAnim('breathe');
+        }
+    }
+
+    setInterval(() => {
+        if (hunger > 0 && !isDirty) {
+            hunger -= 2;
+            updateUI(document.getElementById('log').innerText, document.getElementById('cat-sprite').innerText);
+        }
+    }, 60000);
+
+    updateUI("พาอ้าย Bruno ออกไปล่ากันอ้าย!");
+</script>
+</body>
+</html>
