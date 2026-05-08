@@ -7,17 +7,55 @@
     <style>
         body { background: #1a1a1a; color: #eee; font-family: sans-serif; text-align: center; margin: 0; padding: 20px; }
         #game-box { border: 2px solid #444; border-radius: 25px; width: 320px; margin: 30px auto; padding: 25px; background: #2d2d2d; box-shadow: 0 15px 40px rgba(0,0,0,0.6); }
+        
         .stat-group { text-align: left; font-size: 14px; margin-bottom: 12px; }
         .stat-label { font-weight: bold; color: #bbb; display: flex; justify-content: space-between; margin-bottom: 4px; }
         .stat-bar { background: #444; height: 12px; border-radius: 6px; overflow: hidden; }
-        .fill { background: #4caf50; height: 100%; transition: 0.5s ease; width: 100%; }
+        .fill { height: 100%; transition: 0.5s ease; width: 100%; }
         #hunger-fill { background: #4caf50; }
         #energy-fill { background: #2196f3; }
         #poop-fill { background: #795548; width: 0%; }
-        #cat-sprite { font-size: 80px; margin: 20px 0; height: 100px; display: flex; align-items: center; justify-content: center; }
+
+        /* Animation พื้นฐาน */
+        #cat-sprite { 
+            font-size: 80px; margin: 20px 0; height: 100px; 
+            display: flex; align-items: center; justify-content: center;
+            transition: 0.3s;
+        }
+
+        /* ท่าหายใจปกติ */
+        .breathe { animation: breathe-anim 3s ease-in-out infinite; }
+        @keyframes breathe-anim {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        /* ท่าออกล่า (พุ่งไปข้างหน้า) */
+        .hunt-anim { animation: hunt-move 0.5s ease; }
+        @keyframes hunt-move {
+            0% { transform: translateX(0) scale(1); }
+            50% { transform: translateX(50px) scale(1.1) rotate(15deg); }
+            100% { transform: translateX(0) scale(1); }
+        }
+
+        /* ท่าอ้อน (สั่นดุ๊กดิ๊ก) */
+        .beg-anim { animation: beg-move 0.5s ease; }
+        @keyframes beg-move {
+            0%, 100% { transform: rotate(0); }
+            25% { transform: rotate(-20deg); }
+            75% { transform: rotate(20deg); }
+        }
+
+        /* ท่าหลับ (ขยายเข้าออกช้าๆ) */
+        .sleep-anim { animation: sleep-move 2s infinite; }
+        @keyframes sleep-move {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.9); }
+        }
+
         .btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         button { padding: 12px; cursor: pointer; border: none; border-radius: 10px; font-weight: bold; color: white; transition: 0.2s; font-size: 14px; }
-        button:active { transform: scale(0.95); }
+        button:active { transform: scale(0.9); }
         button:disabled { background: #555 !important; color: #888; cursor: not-allowed; }
         #log { margin-top: 20px; font-size: 14px; color: #ddd; min-height: 45px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 10px; }
     </style>
@@ -25,7 +63,7 @@
 <body>
 
 <div id="game-box">
-    <h3>🐈‍⬛ อ้าย Bruno (วิเชียรมาศ)</h3>
+    <h3>🐈‍⬛ อ้าย Bruno</h3>
     
     <div class="stat-group">
         <div class="stat-label"><span>หิว (Hunger)</span><span id="hunger-val">100%</span></div>
@@ -40,14 +78,14 @@
         <div class="stat-bar"><div id="poop-fill" class="fill"></div></div>
     </div>
 
-    <div id="cat-sprite">🐈‍⬛</div>
-    <div id="log">ยินดีต้อนรับ! พาอ้าย Bruno ออกไปล่ากัน</div>
+    <div id="cat-sprite" class="breathe">🐈‍⬛</div>
+    <div id="log">พาอ้าย Bruno ออกไปล่ากันอ้าย!</div>
 
     <div class="btns">
-        <button id="hunt-btn" onclick="hunt()" style="background: #ff5722;">ออกล่า 🐾</button>
-        <button id="sleep-btn" onclick="sleep()" style="background: #616161;">นอนพัก 💤</button>
-        <button id="beg-btn" onclick="beg()" style="background: #e91e63;">อ้อนคน 💖</button>
-        <button id="clean-btn" onclick="clean()" style="background: #00bcd4; display: none;">เก็บอึ 🧹</button>
+        <button id="hunt-btn" onclick="playAction('hunt')" style="background: #ff5722;">ออกล่า 🐾</button>
+        <button id="sleep-btn" onclick="playAction('sleep')" style="background: #616161;">นอนพัก 💤</button>
+        <button id="beg-btn" onclick="playAction('beg')" style="background: #e91e63;">อ้อนคน 💖</button>
+        <button id="clean-btn" onclick="playAction('clean')" style="background: #00bcd4; display: none;">เก็บอึ 🧹</button>
     </div>
 </div>
 
@@ -59,16 +97,11 @@
 
     function updateUI(msg, emoji = "🐈‍⬛") {
         if (hunger <= 0) {
-            hunger = 0;
-            emoji = "🪦";
-            msg = "อ้าย Bruno ขิตแล้ว... (อดตาย)";
+            hunger = 0; emoji = "🪦"; msg = "อ้าย Bruno ขิตแล้ว... (อดตาย)";
             disableButtons(true);
         }
-
         if (poopLevel >= 100) {
-            isDirty = true;
-            emoji = "🐈‍⬛💩";
-            msg = "อ้าย Bruno อึแตก! เก็บกวาดด่วน 🧹";
+            isDirty = true; emoji = "🐈‍⬛💩"; msg = "อ้าย Bruno อึแตก! เก็บด่วน! 🧹";
             document.getElementById('clean-btn').style.display = "block";
             disableButtons(true);
         } else {
@@ -92,201 +125,8 @@
         document.getElementById('beg-btn').disabled = status;
     }
 
-    function hunt() {
-        if (hunger <= 0 || isDirty) return;
-        if (energy < 20) return updateUI("อ้ายเหนื่อยเกินไป ล่าไม่ไหว...", "😿‍⬛");
-
-        energy -= 15;
-        let roll = Math.random();
-        if (roll > 0.4) {
-            hunger = Math.min(100, hunger + 20);
-            poopLevel += 25;
-            updateUI("อ้ายจับหนูได้! 🐀 รสชาติเด็ด", "😼‍⬛");
-        } else {
-            hunger = Math.min(100, hunger + 10);
-            poopLevel += 15;
-            updateUI("ได้แค่แมลงสาบ... 🪳 แก้ขัดไปก่อน", "😼‍⬛");
-        }
-    }
-
-    function sleep() {
-        if (hunger <= 0 || isDirty) return;
-        energy = Math.min(100, energy + 40);
-        hunger -= 5;
-        updateUI("อ้าย Bruno กำลังหลับปุ๋ย...", "💤‍⬛");
-    }
-
-    function beg() {
-        if (hunger <= 0 || isDirty) return;
-        hunger = Math.min(100, hunger + 15);
-        poopLevel += 10;
-        updateUI("อ้อนจนได้ขนมแมวเลีย 💖", "😸‍⬛");
-    }
-
-    function clean() {
-        poopLevel = 0;
-        isDirty = false;
-        updateUI("ล้างห้องน้ำให้อ้ายสะอาดแล้ว!", "😸‍⬛");
-    }
-
-    setInterval(() => {
-        if (hunger > 0 && !isDirty) {
-            hunger -= 2;
-            updateUI(document.getElementById('log').innerText, document.getElementById('cat-sprite').innerText);
-        }
-    }, 60000);
-
-    updateUI("ยินดีต้อนรับ! พาอ้าย Bruno ออกไปล่ากัน");
-</script>
-</body>
-</html><!DOCTYPE html>
-<html lang="th">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bruno Tamagotchi</title>
-    <style>
-        body { background: #1a1a1a; color: #eee; font-family: sans-serif; text-align: center; margin: 0; padding: 20px; }
-        #game-box { border: 2px solid #444; border-radius: 25px; width: 320px; margin: 30px auto; padding: 25px; background: #2d2d2d; box-shadow: 0 15px 40px rgba(0,0,0,0.6); }
-        .stat-group { text-align: left; font-size: 14px; margin-bottom: 12px; }
-        .stat-label { font-weight: bold; color: #bbb; display: flex; justify-content: space-between; margin-bottom: 4px; }
-        .stat-bar { background: #444; height: 12px; border-radius: 6px; overflow: hidden; }
-        .fill { background: #4caf50; height: 100%; transition: 0.5s ease; width: 100%; }
-        #hunger-fill { background: #4caf50; }
-        #energy-fill { background: #2196f3; }
-        #poop-fill { background: #795548; width: 0%; }
-        #cat-sprite { font-size: 80px; margin: 20px 0; height: 100px; display: flex; align-items: center; justify-content: center; }
-        .btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        button { padding: 12px; cursor: pointer; border: none; border-radius: 10px; font-weight: bold; color: white; transition: 0.2s; font-size: 14px; }
-        button:active { transform: scale(0.95); }
-        button:disabled { background: #555 !important; color: #888; cursor: not-allowed; }
-        #log { margin-top: 20px; font-size: 14px; color: #ddd; min-height: 45px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 10px; }
-    </style>
-</head>
-<body>
-
-<div id="game-box">
-    <h3>🐈‍⬛ Bruno (วิเชียรมาศ)</h3>
-    
-    <div class="stat-group">
-        <div class="stat-label"><span>หิว (Hunger)</span><span id="hunger-val">100%</span></div>
-        <div class="stat-bar"><div id="hunger-fill" class="fill"></div></div>
-    </div>
-    <div class="stat-group">
-        <div class="stat-label"><span>พลัง (Energy)</span><span id="energy-val">100%</span></div>
-        <div class="stat-bar"><div id="energy-fill" class="fill"></div></div>
-    </div>
-    <div class="stat-group">
-        <div class="stat-label"><span>ปวดท้อง (Poop)</span><span id="poop-val">0%</span></div>
-        <div class="stat-bar"><div id="poop-fill" class="fill"></div></div>
-    </div>
-
-    <div id="cat-sprite">🐈‍⬛</div>
-    <div id="log">พาอ้าย Bruno ออกไปล่ากัน</div>
-
-    <div class="btns">
-        <button id="hunt-btn" onclick="hunt()" style="background: #ff5722;">ออกล่า 🐾</button>
-        <button id="sleep-btn" onclick="sleep()" style="background: #616161;">นอนพัก 💤</button>
-        <button id="beg-btn" onclick="beg()" style="background: #e91e63;">อ้อนคน 💖</button>
-        <button id="clean-btn" onclick="clean()" style="background: #00bcd4; display: none;">เก็บอึ 🧹</button>
-    </div>
-</div>
-
-<script>
-    let hunger = 100;
-    let energy = 100;
-    let poopLevel = 0;
-    let isDirty = false;
-
-    // ตั้งค่าอิโมจิวิเชียรมาศ (แมวดำบนพื้นมืดดูเหมือนที่สุด)
-    const catNormal = "🐈‍⬛";
-    const catHappy = "😸‍⬛";
-    const catHunt = "😼‍⬛";
-    const catSleep = "💤‍⬛";
-    const catDead = "🪦";
-
-    function updateUI(msg, emoji = catNormal) {
-        if (hunger <= 0) {
-            hunger = 0;
-            emoji = catDead;
-            msg = "Bruno ขิตแล้ว... (อดตาย)";
-            disableButtons(true);
-        }
-
-        if (poopLevel >= 100) {
-            isDirty = true;
-            emoji = "🐈‍⬛💩";
-            msg = "Bruno อึแตก! เก็บกวาดด่วน 🧹";
-            document.getElementById('clean-btn').style.display = "block";
-            disableButtons(true);
-        } else {
-            document.getElementById('clean-btn').style.display = "none";
-            if (hunger > 0) disableButtons(false);
-        }
-
-        document.getElementById('hunger-fill').style.width = hunger + "%";
-        document.getElementById('hunger-val').innerText = hunger + "%";
-        document.getElementById('energy-fill').style.width = energy + "%";
-        document.getElementById('energy-val').innerText = energy + "%";
-        document.getElementById('poop-fill').style.width = poopLevel + "%";
-        document.getElementById('poop-val').innerText = poopLevel + "%";
-        document.getElementById('cat-sprite').innerText = emoji;
-        document.getElementById('log').innerText = msg;
-    }
-
-    function disableButtons(status) {
-        document.getElementById('hunt-btn').disabled = status;
-        document.getElementById('sleep-btn').disabled = status;
-        document.getElementById('beg-btn').disabled = status;
-    }
-
-    function hunt() {
-        if (hunger <= 0 || isDirty) return;
-        if (energy < 20) return updateUI("เหนื่อยเกินไป ล่าไม่ไหว...", "😿‍⬛");
-
-        energy -= 15;
-        let roll = Math.random();
-        if (roll > 0.4) {
-            hunger = Math.min(100, hunger + 20);
-            poopLevel += 25;
-            updateUI("จับหนูได้! 🐀 รสชาติเด็ด", catHunt);
-        } else {
-            hunger = Math.min(100, hunger + 10);
-            poopLevel += 15;
-            updateUI("ได้แค่แมลงสาบ... 🪳 แก้ขัดไปก่อน", catHunt);
-        }
-    }
-
-    function sleep() {
-        if (hunger <= 0 || isDirty) return;
-        energy = Math.min(100, energy + 40);
-        hunger -= 5;
-        updateUI("Bruno กำลังหลับปุ๋ย...", catSleep);
-    }
-
-    function beg() {
-        if (hunger <= 0 || isDirty) return;
-        hunger = Math.min(100, hunger + 15);
-        poopLevel += 10;
-        updateUI("อ้อนจนได้ขนมแมวเลีย 💖", catHappy);
-    }
-
-    function clean() {
-        poopLevel = 0;
-        isDirty = false;
-        updateUI("ล้างห้องน้ำสะอาดแล้ว!", catHappy);
-    }
-
-    // ระบบลดความหิวทุก 1 นาที (60000 ms)
-    setInterval(() => {
-        if (hunger > 0 && !isDirty) {
-            hunger -= 2;
-            updateUI(document.getElementById('log').innerText, document.getElementById('cat-sprite').innerText);
-        }
-    }, 60000);
-
-    // รัน UI ครั้งแรก
-    updateUI("ยินดีต้อนรับ! พาอ้าย Bruno ออกไปล่ากัน");
-</script>
-</body>
-</html>
+    function setAnim(animClass) {
+        const cat = document.getElementById('cat-sprite');
+        cat.className = ''; // ล้างคลาสเก่า
+        void cat.offsetWidth; // trigger reflow
+        cat.
