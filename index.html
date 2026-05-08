@@ -5,59 +5,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bruno Tamagotchi</title>
     <style>
-        body { background: #1a1a1a; color: #eee; font-family: sans-serif; text-align: center; margin: 0; padding: 20px; }
-        #game-box { border: 2px solid #444; border-radius: 25px; width: 320px; margin: 30px auto; padding: 25px; background: #2d2d2d; box-shadow: 0 15px 40px rgba(0,0,0,0.6); }
+        body { background: #1a1a1a; color: #eee; font-family: sans-serif; text-align: center; margin: 0; overflow: hidden; }
+        #game-box { border: 2px solid #444; border-radius: 20px; width: 340px; margin: 20px auto; padding: 15px; background: #2d2d2d; box-shadow: 0 10px 30px rgba(0,0,0,0.5); position: relative; }
         
-        .stat-group { text-align: left; font-size: 14px; margin-bottom: 12px; }
-        .stat-label { font-weight: bold; color: #bbb; display: flex; justify-content: space-between; margin-bottom: 4px; }
-        .stat-bar { background: #444; height: 12px; border-radius: 6px; overflow: hidden; }
-        .fill { height: 100%; transition: 0.5s ease; width: 100%; }
-        #hunger-fill { background: #4caf50; }
-        #energy-fill { background: #2196f3; }
-        #poop-fill { background: #795548; width: 0%; }
+        /* แถบพลังขนาดเล็ก */
+        .stats { display: flex; justify-content: space-around; margin-bottom: 10px; font-size: 10px; }
+        .stat-bar { background: #444; width: 60px; height: 6px; border-radius: 3px; margin-top: 3px; overflow: hidden; }
+        .fill { height: 100%; transition: 0.3s; width: 100%; }
 
-        /* Animation พื้นฐาน */
-        #cat-sprite { 
-            font-size: 80px; margin: 20px 0; height: 100px; 
-            display: flex; align-items: center; justify-content: center;
-            transition: 0.3s;
-        }
+        /* สนามล่า */
+        #stage { background: #222; height: 150px; border-radius: 10px; position: relative; margin-bottom: 15px; overflow: hidden; border: 1px solid #333; }
+        #cat-sprite { font-size: 50px; position: absolute; bottom: 10px; left: 140px; transition: left 0.2s, bottom 0.2s; z-index: 2; }
+        #prey { font-size: 30px; position: absolute; bottom: 15px; display: none; }
 
-        /* ท่าหายใจปกติ */
-        .breathe { animation: breathe-anim 3s ease-in-out infinite; }
-        @keyframes breathe-anim {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
-
-        /* ท่าออกล่า (พุ่งไปข้างหน้า) */
-        .hunt-anim { animation: hunt-move 0.5s ease; }
-        @keyframes hunt-move {
-            0% { transform: translateX(0) scale(1); }
-            50% { transform: translateX(50px) scale(1.1) rotate(15deg); }
-            100% { transform: translateX(0) scale(1); }
-        }
-
-        /* ท่าอ้อน (สั่นดุ๊กดิ๊ก) */
-        .beg-anim { animation: beg-move 0.5s ease; }
-        @keyframes beg-move {
-            0%, 100% { transform: rotate(0); }
-            25% { transform: rotate(-20deg); }
-            75% { transform: rotate(20deg); }
-        }
-
-        /* ท่าหลับ (ขยายเข้าออกช้าๆ) */
-        .sleep-anim { animation: sleep-move 2s infinite; }
-        @keyframes sleep-move {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.5; transform: scale(0.9); }
-        }
-
-        .btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        button { padding: 12px; cursor: pointer; border: none; border-radius: 10px; font-weight: bold; color: white; transition: 0.2s; font-size: 14px; }
+        /* ปุ่มบังคับ */
+        .control-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 10px; }
+        .action-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+        
+        button { padding: 10px; cursor: pointer; border: none; border-radius: 8px; font-weight: bold; color: white; font-size: 12px; transition: 0.2s; }
         button:active { transform: scale(0.9); }
-        button:disabled { background: #555 !important; color: #888; cursor: not-allowed; }
-        #log { margin-top: 20px; font-size: 14px; color: #ddd; min-height: 45px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 10px; }
+        .btn-move { background: #444; }
+        .btn-action { background: #ff5722; }
+        .btn-clean { background: #00bcd4; grid-column: span 2; display: none; }
+        
+        #log { font-size: 12px; color: #bbb; min-height: 30px; margin-top: 10px; background: rgba(0,0,0,0.2); padding: 5px; border-radius: 5px; }
     </style>
 </head>
 <body>
@@ -65,122 +36,99 @@
 <div id="game-box">
     <h3>🐈‍⬛ อ้าย Bruno</h3>
     
-    <div class="stat-group">
-        <div class="stat-label"><span>หิว (Hunger)</span><span id="hunger-val">100%</span></div>
-        <div class="stat-bar"><div id="hunger-fill" class="fill"></div></div>
-    </div>
-    <div class="stat-group">
-        <div class="stat-label"><span>พลัง (Energy)</span><span id="energy-val">100%</span></div>
-        <div class="stat-bar"><div id="energy-fill" class="fill"></div></div>
-    </div>
-    <div class="stat-group">
-        <div class="stat-label"><span>ปวดท้อง (Poop)</span><span id="poop-val">0%</span></div>
-        <div class="stat-bar"><div id="poop-fill" class="fill"></div></div>
+    <div class="stats">
+        <div>หิว<div class="stat-bar"><div id="h-fill" class="fill" style="background:#4caf50"></div></div></div>
+        <div>พลัง<div class="stat-bar"><div id="e-fill" class="fill" style="background:#2196f3"></div></div></div>
+        <div>อึ<div class="stat-bar"><div id="p-fill" class="fill" style="background:#795548; width:0%"></div></div></div>
     </div>
 
-    <div id="cat-sprite" class="breathe">🐈‍⬛</div>
-    <div id="log">พาอ้าย Bruno ออกไปล่ากันอ้าย!</div>
+    <div id="stage">
+        <div id="prey">🐀</div>
+        <div id="cat-sprite">🐈‍⬛</div>
+    </div>
 
-    <div class="btns">
-        <button id="hunt-btn" onclick="playAction('hunt')" style="background: #ff5722;">ออกล่า 🐾</button>
-        <button id="sleep-btn" onclick="playAction('sleep')" style="background: #616161;">นอนพัก 💤</button>
-        <button id="beg-btn" onclick="playAction('beg')" style="background: #e91e63;">อ้อนคน 💖</button>
-        <button id="clean-btn" onclick="playAction('clean')" style="background: #00bcd4; display: none;">เก็บอึ 🧹</button>
+    <div id="log">ใช้ปุ่มลูกศรบังคับอ้าย Bruno ไปกินหนู!</div>
+
+    <div class="action-btns">
+        <button class="btn-action" onclick="startHunt()">ออกล่า 🐾</button>
+        <button class="btn-action" style="background:#616161" onclick="doAction('sleep')">นอนพัก 💤</button>
+        <button class="btn-action" style="background:#e91e63" onclick="doAction('beg')">อ้อนคน 💖</button>
+        <button id="btn-clean" class="btn-clean" onclick="doAction('clean')">เก็บอึ 🧹</button>
+    </div>
+
+    <div class="control-grid">
+        <button class="btn-move" onclick="move(-30)">⬅️ ซ้าย</button>
+        <button class="btn-move" style="background:#555" onclick="jump()">Jump ⬆️</button>
+        <button class="btn-move" onclick="move(30)">ขวา ➡️</button>
     </div>
 </div>
 
 <script>
-    let hunger = 100;
-    let energy = 100;
-    let poopLevel = 0;
-    let isDirty = false;
+    let h = 100, e = 100, p = 0, catX = 140, isHunting = false;
 
-    function updateUI(msg, emoji = "🐈‍⬛") {
-        if (hunger <= 0) {
-            hunger = 0; emoji = "🪦"; msg = "อ้าย Bruno ขิตแล้ว... (อดตาย)";
-            disableButtons(true);
-        }
-        if (poopLevel >= 100) {
-            isDirty = true; emoji = "🐈‍⬛💩"; msg = "อ้าย Bruno อึแตก! เก็บด่วน! 🧹";
-            document.getElementById('clean-btn').style.display = "block";
-            disableButtons(true);
+    function updateUI(msg) {
+        if (h <= 0) { h = 0; msg = "อ้าย Bruno ขิตแล้ว... (อดตาย)"; }
+        if (p >= 100) { 
+            msg = "อ้ายอึแตก! ขยับไม่ได้ 🧹"; 
+            document.getElementById('btn-clean').style.display = "block";
         } else {
-            document.getElementById('clean-btn').style.display = "none";
-            if (hunger > 0) disableButtons(false);
+            document.getElementById('btn-clean').style.display = "none";
         }
 
-        document.getElementById('hunger-fill').style.width = hunger + "%";
-        document.getElementById('hunger-val').innerText = hunger + "%";
-        document.getElementById('energy-fill').style.width = energy + "%";
-        document.getElementById('energy-val').innerText = energy + "%";
-        document.getElementById('poop-fill').style.width = poopLevel + "%";
-        document.getElementById('poop-val').innerText = poopLevel + "%";
-        document.getElementById('cat-sprite').innerText = emoji;
+        document.getElementById('h-fill').style.width = h + "%";
+        document.getElementById('e-fill').style.width = e + "%";
+        document.getElementById('p-fill').style.width = p + "%";
         document.getElementById('log').innerText = msg;
     }
 
-    function disableButtons(status) {
-        document.getElementById('hunt-btn').disabled = status;
-        document.getElementById('sleep-btn').disabled = status;
-        document.getElementById('beg-btn').disabled = status;
+    function move(dist) {
+        if (p >= 100 || h <= 0) return;
+        catX = Math.max(0, Math.min(280, catX + dist));
+        document.getElementById('cat-sprite').style.left = catX + "px";
+        checkCollision();
     }
 
-    function setAnim(animClass) {
+    function jump() {
+        if (p >= 100 || h <= 0) return;
         const cat = document.getElementById('cat-sprite');
-        cat.className = ''; // ล้างคลาสเก่า
-        void cat.offsetWidth; // trigger reflow
-        cat.classList.add(animClass);
+        cat.style.bottom = "80px";
+        setTimeout(() => { 
+            cat.style.bottom = "10px"; 
+            setTimeout(checkCollision, 200);
+        }, 300);
     }
 
-    function playAction(type) {
-        if (type === 'hunt') {
-            if (energy < 20) return updateUI("อ้ายเหนื่อยเกินไป...", "😿‍⬛");
-            setAnim('hunt-anim');
-            setTimeout(() => {
-                energy -= 20;
-                if (Math.random() > 0.5) {
-                    hunger = Math.min(100, hunger + 25);
-                    poopLevel += 30;
-                    updateUI("อ้ายตะปบหนูได้! 🐀 หวานเจี๊ยบ", "😼‍⬛");
-                } else {
-                    updateUI("พลาด! หนูมันวิ่งไว 🐀", "😿‍⬛");
-                }
-                setTimeout(() => setAnim('breathe'), 500);
-            }, 500);
-        } 
-        else if (type === 'sleep') {
-            setAnim('sleep-anim');
-            setTimeout(() => {
-                energy = Math.min(100, energy + 50);
-                hunger -= 10;
-                updateUI("อ้ายหลับเต็มอิ่ม พลังมาเต็ม!", "💤‍⬛");
-                setTimeout(() => setAnim('breathe'), 1000);
-            }, 2000);
-        }
-        else if (type === 'beg') {
-            setAnim('beg-anim');
-            setTimeout(() => {
-                hunger = Math.min(100, hunger + 15);
-                poopLevel += 10;
-                updateUI("อ้อนจนคนใจอ่อน ได้หนมเฉย! 💖", "😸‍⬛");
-                setTimeout(() => setAnim('breathe'), 500);
-            }, 500);
-        }
-        else if (type === 'clean') {
-            poopLevel = 0; isDirty = false;
-            updateUI("ล้างห้องน้ำให้อ้ายแล้ว สะอาดกริ๊บ!", "😸‍⬛");
-            setAnim('breathe');
+    function startHunt() {
+        if (p >= 100 || h <= 0 || e < 20) return updateUI("พลังไม่พอออกล่า...");
+        isHunting = true;
+        e -= 15;
+        const prey = document.getElementById('prey');
+        prey.style.display = "block";
+        prey.style.left = Math.random() * 280 + "px";
+        updateUI("หนูโผล่มาแล้ว! บังคับอ้ายไปงับมัน!");
+    }
+
+    function checkCollision() {
+        if (!isHunting) return;
+        const cat = document.getElementById('cat-sprite').getBoundingClientRect();
+        const prey = document.getElementById('prey').getBoundingClientRect();
+
+        if (!(cat.right < prey.left || cat.left > prey.right || cat.bottom < prey.top || cat.top > prey.bottom)) {
+            isHunting = false;
+            document.getElementById('prey').style.display = "none";
+            h = Math.min(100, h + 30);
+            p = Math.min(100, p + 25);
+            updateUI("งับหนูเรียบร้อย! หวานเจี๊ยบ 🐀");
         }
     }
 
-    setInterval(() => {
-        if (hunger > 0 && !isDirty) {
-            hunger -= 2;
-            updateUI(document.getElementById('log').innerText, document.getElementById('cat-sprite').innerText);
-        }
-    }, 60000);
+    function doAction(type) {
+        if (type === 'sleep') { h -= 5; e = Math.min(100, e + 40); updateUI("อ้ายหลับปุ๋ย..."); }
+        if (type === 'beg') { h = Math.min(100, h + 10); p += 10; updateUI("อ้อนจนได้หนม 💖"); }
+        if (type === 'clean') { p = 0; updateUI("ล้างห้องน้ำให้อ้ายแล้ว!"); }
+    }
 
-    updateUI("พาอ้าย Bruno ออกไปล่ากันอ้าย!");
+    setInterval(() => { if (h > 0 && p < 100) { h -= 1; updateUI(document.getElementById('log').innerText); } }, 60000);
 </script>
 </body>
 </html>
