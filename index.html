@@ -3,128 +3,130 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bruno Tamagotchi</title>
+    <title>Bruno 8-Bit</title>
     <style>
-        body { background: #1a1a1a; color: #eee; font-family: sans-serif; text-align: center; margin: 0; padding: 10px; overflow: hidden; }
-        #game-box { border: 2px solid #444; border-radius: 20px; width: 340px; margin: 10px auto; padding: 15px; background: #2d2d2d; box-shadow: 0 10px 30px rgba(0,0,0,0.5); position: relative; }
+        /* โหลดฟอนต์สไตล์พิกเซล */
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+        body { background: #121212; color: #fff; font-family: 'Press Start 2P', cursive; text-align: center; margin: 0; padding: 10px; image-rendering: pixelated; }
+        #game-box { border: 4px solid #fff; border-radius: 4px; width: 340px; margin: 10px auto; padding: 15px; background: #222; box-shadow: 10px 10px 0px #000; position: relative; }
         
-        /* ปรับสเตตัสให้จิ๋วลงตามสั่ง */
-        .stats { display: flex; justify-content: space-around; margin-bottom: 8px; font-size: 10px; color: #bbb; }
-        .stat-item { width: 30%; text-align: center; }
-        .stat-bar { background: #444; height: 5px; border-radius: 3px; margin-top: 3px; overflow: hidden; border: 1px solid #333; }
-        .fill { height: 100%; transition: 0.3s; width: 100%; }
+        /* สเตตัสจิ๋ว 8-bit */
+        .stats { display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; font-size: 8px; text-align: left; }
+        .stat-bar { background: #444; height: 8px; width: 100%; border: 2px solid #000; margin-top: 4px; position: relative; }
+        .fill { height: 100%; transition: 0.2s; }
 
-        /* ฉากเล่นเกม */
-        #stage { background: #1f1f1f; height: 160px; border-radius: 12px; position: relative; margin: 10px 0; overflow: hidden; border: 1px solid #333; box-shadow: inset 0 0 20px rgba(0,0,0,0.5); }
-        #cat-sprite { font-size: 50px; position: absolute; bottom: 10px; left: 140px; transition: left 0.1s, bottom 0.2s; z-index: 10; }
-        #prey { font-size: 30px; position: absolute; bottom: 15px; display: none; }
+        /* หน้าจอเกม */
+        #stage { background: #5a8a5a; height: 140px; border: 4px solid #000; position: relative; margin-bottom: 15px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        #cat-sprite { font-size: 50px; position: absolute; bottom: 10px; transition: 0.1s; z-index: 5; }
+        #item { font-size: 25px; position: absolute; display: none; }
 
-        /* ปุ่มคำสั่ง */
-        .action-btns { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; margin-bottom: 10px; }
-        .action-btns button { padding: 8px 2px; font-size: 11px; border-radius: 6px; border: none; color: white; cursor: pointer; font-weight: bold; }
+        /* ปุ่มกิจกรรม 4 ปุ่มจิ๋ว */
+        .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 10px; }
+        button { font-family: 'Press Start 2P', cursive; font-size: 7px; padding: 10px 2px; cursor: pointer; border: 3px solid #000; color: #fff; box-shadow: 4px 4px 0px #000; transition: 0.1s; }
+        button:active { transform: translate(2px, 2px); box-shadow: 0px 0px 0px #000; }
+        
+        .btn-hunt { background: #e74c3c; }
+        .btn-feed { background: #2ecc71; }
+        .btn-sleep { background: #34495e; }
+        .btn-beg { background: #9b59b6; }
         
         /* ปุ่มบังคับทิศทาง */
-        .d-pad { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 12px; }
-        .btn-move { background: #3d3d3d; padding: 15px 5px; border-radius: 8px; border: none; color: white; font-weight: bold; cursor: pointer; }
-        .btn-move:active { background: #555; transform: scale(0.9); }
-        
-        #log { font-size: 12px; color: #888; min-height: 35px; margin-top: 8px; line-height: 1.4; }
-        
-        .bite { transform: scale(1.3) rotate(-10deg) !important; }
+        .d-pad { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; background: #333; padding: 8px; border: 3px solid #000; }
+        .btn-move { background: #7f8c8d; padding: 10px 0; font-size: 8px; }
+
+        #log { font-size: 7px; color: #aaa; margin: 10px 0; min-height: 25px; line-height: 1.5; text-transform: uppercase; }
+        #btn-clean { width: 100%; margin-top: 10px; background: #f1c40f; color: #000; display: none; font-size: 8px; }
     </style>
 </head>
 <body>
 
 <div id="game-box">
-    <h3 style="margin: 0 0 12px 0; font-size: 18px; color: #ff9800;">🐈 อ้าย Bruno</h3>
+    <h4 style="font-size: 10px; margin: 0 0 15px 0;">BRUNO 8-BIT</h4>
     
     <div class="stats">
-        <div class="stat-item">หิว<div class="stat-bar"><div id="h-fill" class="fill" style="background:#4caf50"></div></div></div>
-        <div class="stat-item">พลัง<div class="stat-bar"><div id="e-fill" class="fill" style="background:#2196f3"></div></div></div>
-        <div class="stat-item">อึ<div class="stat-bar"><div id="p-fill" class="fill" style="background:#795548; width:0%"></div></div></div>
+        <div>HUNGER <div class="stat-bar"><div id="h-fill" class="fill" style="background:#2ecc71; width:100%"></div></div></div>
+        <div>ENERGY <div class="stat-bar"><div id="e-fill" class="fill" style="background:#3498db; width:100%"></div></div></div>
+        <div>POOP <div class="stat-bar"><div id="p-fill" class="fill" style="background:#e67e22; width:0%"></div></div></div>
     </div>
 
     <div id="stage">
-        <div id="prey">🐀</div>
+        <div id="item">🐀</div>
         <div id="cat-sprite">🐈</div>
     </div>
 
-    <div id="log">บังคับอ้าย Bruno ไปกินหนูเลยอ้าย!</div>
+    <div id="log">READY!</div>
 
-    <div class="action-btns">
-        <button style="background: #ff5722;" onclick="spawnPrey()">ออกล่า 🐾</button>
-        <button style="background: #616161;" onclick="doLife('sleep')">นอนพัก 💤</button>
-        <button style="background: #e91e63;" onclick="doLife('beg')">อ้อนคน 💖</button>
+    <div class="action-grid">
+        <button class="btn-hunt" onclick="gameAction('hunt')">HUNT 🐾</button>
+        <button class="btn-feed" onclick="gameAction('feed')">FEED 🐟</button>
+        <button class="btn-sleep" onclick="gameAction('sleep')">SLEEP 💤</button>
+        <button class="btn-beg" onclick="gameAction('beg')">BEG 💖</button>
     </div>
 
     <div class="d-pad">
-        <button class="btn-move" onclick="moveCat(-40)">⬅️ ซ้าย</button>
-        <button class="btn-move" style="background: #555;" onclick="jumpCat()">โดด ⬆️</button>
-        <button class="btn-move" onclick="moveCat(40)">ขวา ➡️</button>
+        <button class="btn-move" onclick="move(-40)">LEFT</button>
+        <button class="btn-move" style="background:#555" onclick="jump()">JUMP</button>
+        <button class="btn-move" onclick="move(40)">RIGHT</button>
     </div>
     
-    <button id="btn-clean" style="width:100%; margin-top:10px; padding:10px; background:#00bcd4; color:white; border:none; border-radius:8px; display:none;" onclick="doLife('clean')">🧹 เก็บอึให้อ้าย</button>
+    <button id="btn-clean" onclick="gameAction('clean')">CLEAN POOP! 🧹</button>
 </div>
 
 <script>
-    let h = 100, e = 100, p = 0, catX = 140, isHunting = false;
+    let h = 100, e = 100, p = 0, x = 140, isHunting = false;
 
     function updateUI(msg) {
-        const cat = document.getElementById('cat-sprite');
-        if (h <= 0) { h = 0; msg = "อ้าย Bruno ขิตแล้ว..."; cat.innerText = "🪦"; }
-        if (p >= 100) { 
-            msg = "อ้ายอึแตก! เก็บด่วน 🧹"; 
-            document.getElementById('btn-clean').style.display = "block";
-        } else {
-            document.getElementById('btn-clean').style.display = "none";
-        }
+        if (h <= 0) { h = 0; msg = "GAME OVER"; document.getElementById('cat-sprite').innerText = "💀"; }
+        if (p >= 100) { msg = "DIRTY! CLEAN IT"; document.getElementById('btn-clean').style.display = "block"; }
+        else { document.getElementById('btn-clean').style.display = "none"; }
+
         document.getElementById('h-fill').style.width = h + "%";
         document.getElementById('e-fill').style.width = e + "%";
         document.getElementById('p-fill').style.width = p + "%";
-        document.getElementById('log').innerHTML = msg;
+        document.getElementById('log').innerText = msg;
     }
 
-    function moveCat(dist) {
+    function move(d) {
         if (p >= 100 || h <= 0) return;
-        catX = Math.max(0, Math.min(280, catX + dist));
-        document.getElementById('cat-sprite').style.left = catX + "px";
+        x = Math.max(0, Math.min(280, x + d));
+        document.getElementById('cat-sprite').style.left = x + "px";
         checkHit();
     }
 
-    function jumpCat() {
+    function jump() {
         if (p >= 100 || h <= 0) return;
-        const cat = document.getElementById('cat-sprite');
-        if (cat.style.bottom === "80px") return;
-        cat.style.bottom = "80px";
-        setTimeout(() => { cat.style.bottom = "10px"; setTimeout(checkHit, 150); }, 300);
+        const c = document.getElementById('cat-sprite');
+        c.style.bottom = "70px";
+        setTimeout(() => { c.style.bottom = "10px"; setTimeout(checkHit, 150); }, 300);
     }
 
-    function spawnPrey() {
-        if (p >= 100 || h <= 0 || e < 20) return updateUI("พลังไม่พอ...");
-        isHunting = true; e -= 15;
-        const prey = document.getElementById('prey');
-        prey.style.display = "block";
-        prey.style.left = Math.floor(Math.random() * 260) + "px";
-        updateUI("หนูมาแล้ว! บังคับอ้ายไปงับเลย");
+    function gameAction(type) {
+        if (type === 'hunt') {
+            if (e < 20) return updateUI("NO ENERGY");
+            isHunting = true; e -= 15;
+            const i = document.getElementById('item');
+            i.innerText = "🐀"; i.style.display = "block";
+            i.style.left = Math.random() * 260 + "px";
+            updateUI("CATCH RAT!");
+        }
+        else if (type === 'feed') {
+            h = Math.min(100, h + 20); p += 15;
+            updateUI("YUMMY FISH! 🐟");
+        }
+        else if (type === 'sleep') { e = Math.min(100, e + 50); h -= 10; updateUI("ZZZ..."); }
+        else if (type === 'beg') { h = Math.min(100, h + 10); updateUI("LOVE YOU!"); }
+        else if (type === 'clean') { p = 0; updateUI("CLEAN!"); }
     }
 
     function checkHit() {
         if (!isHunting) return;
-        const cat = document.getElementById('cat-sprite');
-        const prey = document.getElementById('prey');
-        if (Math.abs(cat.offsetLeft - prey.offsetLeft) < 45 && cat.style.bottom === "10px") {
-            isHunting = false; prey.style.display = "none";
-            h = Math.min(100, h + 35); p = Math.min(100, p + 20);
-            cat.classList.add('bite');
-            setTimeout(() => cat.classList.remove('bite'), 300);
-            updateUI("งับหนูเรียบร้อย! 🐀 หวานเจี๊ยบ");
+        const c = document.getElementById('cat-sprite'), i = document.getElementById('item');
+        if (Math.abs(c.offsetLeft - i.offsetLeft) < 40) {
+            isHunting = false; i.style.display = "none";
+            h = Math.min(100, h + 30); p += 20;
+            updateUI("GOT IT!");
         }
-    }
-
-    function doLife(type) {
-        if (type === 'sleep') { h -= 5; e = Math.min(100, e + 50); updateUI("อ้ายหลับปุ๋ย พลังมาเต็ม!"); }
-        if (type === 'beg') { h = Math.min(100, h + 15); p += 10; updateUI("อ้อนจนได้หนม! 💖"); }
-        if (type === 'clean') { p = 0; updateUI("ล้างห้องน้ำสะอาดแล้ว!"); }
     }
 </script>
 </body>
