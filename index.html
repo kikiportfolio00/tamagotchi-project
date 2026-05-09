@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bruno Final Sound Fixed</title>
+    <title>Bruno Final All-In-One</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
         :root { --gb-screen: #8b956d; --gb-dark: #1f1f21; --gb-body: #9ca0a8; }
@@ -14,7 +14,7 @@
         .hud { display: flex; gap: 8px; padding: 8px; font-size: 6px; color: var(--gb-dark); align-items: center; }
         .bar-bg { background: rgba(0,0,0,0.1); height: 4px; width: 35px; border: 1px solid var(--gb-dark); }
         .fill { background: var(--gb-dark); height: 100%; transition: 0.3s; }
-        #hunt-count { font-size: 8px; margin-left: auto; }
+        #hunt-count { font-size: 6px; margin-left: auto; }
         #cat { font-size: 45px; position: absolute; bottom: 10px; left: 110px; filter: grayscale(100%) contrast(200%); z-index: 5; }
         .walk-anim { animation: walk 0.2s steps(2) infinite; }
         @keyframes walk { from { transform: scaleY(1); } to { transform: scaleY(0.9) translateY(4px); } }
@@ -41,7 +41,8 @@
             <div class="hud">
                 <div>H<div class="bar-bg"><div id="h-f" class="fill"></div></div></div>
                 <div>E<div class="bar-bg"><div id="e-f" class="fill"></div></div></div>
-                <div id="hunt-count">HUNT:0</div>
+                <div>W<div class="bar-bg"><div id="w-f" class="fill" style="width:0%"></div></div></div>
+                <div id="hunt-count">H:0</div>
             </div>
             <div id="poop">💩</div>
             <div id="target">🐀</div>
@@ -76,16 +77,16 @@
 
     function spawnParticle(emoji, isFirework=false) {
         const screen = document.getElementById('screen');
-        const p = document.createElement('div');
-        p.className = isFirework ? 'firework' : 'particle';
-        p.innerText = emoji;
-        p.style.left = isFirework ? (Math.random()*240)+'px' : (x + 10) + 'px';
-        p.style.bottom = isFirework ? (Math.random()*100 + 40)+'px' : '40px';
-        p.style.setProperty('--r', Math.random());
-        p.style.setProperty('--rx', Math.random() - 0.5);
-        p.style.setProperty('--ry', Math.random() - 0.5);
-        screen.appendChild(p);
-        setTimeout(() => p.remove(), 1500);
+        const pE = document.createElement('div');
+        pE.className = isFirework ? 'firework' : 'particle';
+        pE.innerText = emoji;
+        pE.style.left = isFirework ? (Math.random()*240)+'px' : (x + 10) + 'px';
+        pE.style.bottom = isFirework ? (Math.random()*100 + 40)+'px' : '40px';
+        pE.style.setProperty('--r', Math.random());
+        pE.style.setProperty('--rx', Math.random() - 0.5);
+        pE.style.setProperty('--ry', Math.random() - 0.5);
+        screen.appendChild(pE);
+        setTimeout(() => pE.remove(), 1500);
     }
 
     function update(txt) {
@@ -99,20 +100,19 @@
         else { document.getElementById('poop').style.display="none"; }
         document.getElementById('h-f').style.width = h+'%';
         document.getElementById('e-f').style.width = e+'%';
-        document.getElementById('hunt-count').innerText = `HUNT:${winCount}`;
+        document.getElementById('w-f').style.width = (winCount*20)+'%';
+        document.getElementById('hunt-count').innerText = `H:${winCount}`;
         document.getElementById('msg').innerText = txt.toUpperCase();
     }
 
     function move(d) { beep(150, 'square', 0.05); x = Math.max(0, Math.min(240, x+d)); document.getElementById('cat').style.left = x+'px'; checkHit(); }
     function jump() { beep(400, 'square', 0.1); const c = document.getElementById('cat'); c.style.bottom = "80px"; setTimeout(() => { c.style.bottom="10px"; checkHit(); }, 300); }
     
-    // แก้ไข: เพิ่มเสียงตอนล้างขี้
     function checkCombo() { 
         beep(100, 'square', 0.05); 
         let now = Date.now(); 
         if(now - lastDown < 500) { 
             p = 0; 
-            // เสียงตดตอนล้างขี้
             beep(100, 'sawtooth', 0.2, 0.2); 
             setTimeout(()=>beep(80, 'sawtooth', 0.3, 0.1), 100);
             update("CLEANED!"); 
@@ -134,7 +134,6 @@
         if(type==='hunt') { if(isWon) return; e-=15; spawn(); update("WATCH OUT!"); }
         if(type==='beg') { 
             h+=10; update("LOVE!"); 
-            // เสียงหัวใจวิ้งๆ
             [500, 700, 900].forEach((f, i) => setTimeout(() => beep(f, 'sine', 0.1, 0.1), i * 80));
             for(let i=0; i<10; i++) spawnParticle('❤️'); 
         }
@@ -149,13 +148,9 @@
         let timer = (pE === '🐍') ? 60000 : 3000; 
         if(pE === '🐍') {
             update("SNAKE! 1 MIN!");
-            // เสียงเตือนงู
-            let alertCount = 0;
             let snakeAlert = setInterval(() => {
                 if(!hunting) clearInterval(snakeAlert);
                 beep(200, 'square', 0.05);
-                alertCount++;
-                if(alertCount > 60) clearInterval(snakeAlert);
             }, 1000);
         }
 
@@ -176,7 +171,7 @@
             h=Math.min(100,h+20); p+=20; update("GOT IT!");
         }
     }
-    update("BRUNO!");
+    update("BRUNO V5.2");
 </script>
 </body>
 </html>
