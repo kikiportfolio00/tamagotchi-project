@@ -2,12 +2,25 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bruno 8 Bit</title>
+    <!-- บรรทัดนี้แก้ปัญหาจอซูมบนมือถือครับ -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Bruno 8 Bit </title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
         :root { --gb-screen: #8b956d; --gb-dark: #1f1f21; --gb-body: #9ca0a8; }
-        body { background: #1a1a1a; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; font-family: 'Press Start 2P', cursive; image-rendering: pixelated; }
+        body { 
+            background: #1a1a1a; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            margin: 0; 
+            font-family: 'Press Start 2P', cursive; 
+            image-rendering: pixelated;
+            /* สองบรรทัดนี้ช่วยป้องกันการซูมตอนกดปุ่มรัวๆ */
+            touch-action: manipulation;
+            user-select: none;
+        }
         #gameboy { width: 340px; background: var(--gb-body); padding: 25px; border-radius: 10px 10px 50px 10px; border: 4px solid #777; box-shadow: 10px 10px 0 #000; position: relative;}
         #screen-border { background: #333; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
         #screen { background: var(--gb-screen); height: 160px; border: 3px solid #555; position: relative; overflow: hidden; }
@@ -85,6 +98,7 @@
 
     function update(txt) {
         const cat = document.getElementById('cat');
+        // แก้บักหลังชนะ: แมวจะไม่หาย แต่จะใส่ชุดเก่ง 🐈🏆
         if(winCount >= 5) { isWon=true; txt="YOU WIN!"; cat.innerText="🐈🏆"; }
         if(p >= 100) { p=100; document.getElementById('poop').style.display="block"; txt="DIRTY! DOWN x2"; }
         else { document.getElementById('poop').style.display="none"; }
@@ -101,22 +115,26 @@
     function act(type) {
         const cat = document.getElementById('cat');
         if(type==='feed') { 
+            // เอฟเฟกต์ งั้มๆ! และปลาลอย
             h=Math.min(100,h+20); p+=10; update("งั้มๆ!"); cat.innerText="🐯"; 
             beep(200, 'square', 0.1); setTimeout(()=>beep(400, 'square', 0.1), 100);
             for(let i=0; i<3; i++) setTimeout(()=>spawnParticle('🐟'), i*200);
             setTimeout(()=>cat.innerText=isWon?"🐈🏆":"🐈", 500);
         }
         if(type==='sleep') { 
+            // เอฟเฟกต์ ZZZ ลอยเต็มจอ
             e=Math.min(100,e+50); h-=5; update("ZZZ..."); 
             const notes = [261, 329, 392, 261];
             notes.forEach((f, i) => {
                 setTimeout(() => { beep(f, 'sine', 0.4); spawnParticle('Z'); }, i * 500);
             });
+            for(let i=0; i<10; i++) setTimeout(()=>spawnParticle('z'), 1000 + i*100);
         }
         if(type==='hunt') { if(isWon) return; e-=15; spawn(); update("CATCH IT!"); }
         if(type==='beg') { 
+            // เอฟเฟกต์ หัวใจ ❤️ ลอยเต็มจอและเสียงแมวอ้วน
             h+=10; update("MEOW~"); beep(150, 'triangle', 0.3, 0.2);
-            for(let i=0; i<8; i++) setTimeout(()=>spawnParticle('❤️'), i*100);
+            for(let i=0; i<15; i++) setTimeout(()=>spawnParticle('❤️'), i*50);
         }
     }
 
